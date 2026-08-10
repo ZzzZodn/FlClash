@@ -152,15 +152,12 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
   @override
   Widget build(context) {
     final appLocalizations = context.appLocalizations;
-    final rules = ref.watch(profileCustomRulesProvider(_profileId)).value ?? [];
+    final query = ref.watch(queryProvider(QueryTag.rules));
+    final isSearching = query.trim().isNotEmpty;
+    final rules =
+        (ref.watch(profileCustomRulesProvider(_profileId)).value ?? <Rule>[])
+            .filterQuery(query);
     final selectedRules = ref.watch(itemsProvider(key));
-    final vm2 = ref.watch(
-      customOverwriteDateProvider(
-        widget.profileId,
-      ).select((state) => VM2(state.ruleTargets, state.subRules)),
-    );
-    final ruleTargets = vm2.a;
-    final subRules = vm2.b;
     return CommonScaffold(
       title: appLocalizations.rule,
       actions: [
@@ -186,68 +183,124 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
         ),
         const SizedBox(width: 8),
       ],
+      searchState: AppBarSearchState(
+        onSearch: (value) {
+          ref.read(queryProvider(QueryTag.rules).notifier).value = value;
+        },
+      ),
       body: rules.isEmpty
           ? NullStatus(label: appLocalizations.ruleEmpty)
-          : CommonScrollBar(
-              controller: _scrollController,
-              child: ReorderableListView.builder(
-                scrollController: _scrollController,
-                buildDefaultDragHandles: false,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ).copyWith(bottom: 24),
-                itemBuilder: (_, index) {
-                  final rule = rules[index];
-                  return _buildItem(
-                    index: index,
-                    checkInvalidHandler: (rule) {
-                      return _handleCheckInvalid(rule, ruleTargets, subRules);
-                    },
-                    total: rules.length,
-                    isEditing: selectedRules.isNotEmpty,
-                    isSelected: selectedRules.contains(rule.id),
-                    rule: rule,
-                    onSelected: () {
-                      _handleSelected(rule.id);
-                    },
-                    onEdit: (rule) {
-                      _handleAddOrUpdate(rule: rule);
-                    },
-                  );
-                },
-                itemExtent: ruleItemHeight,
-                itemCount: rules.length,
-                proxyDecorator: (child, index, animation) {
-                  final rule = rules[index];
-                  return commonProxyDecorator(
-                    _buildItem(
-                      index: index,
-                      checkInvalidHandler: (target) {
-                        return _handleCheckInvalid(
-                          target,
-                          ruleTargets,
-                          subRules,
-                        );
-                      },
-                      total: rules.length,
-                      isEditing: selectedRules.isNotEmpty,
-                      isSelected: selectedRules.contains(rule.id),
-                      rule: rule,
-                      onSelected: () {
-                        _handleSelected(rule.id);
-                      },
-                      onEdit: (rule) {
-                        _handleAddOrUpdate(rule: rule);
-                      },
-                    ),
-                    index,
-                    animation,
-                  );
-                },
-                onReorderItem: _handleReorder,
-              ),
+          : Column(
+              children: [
+                const RuleListHeader(),
+                Expanded(child: _buildList(rules, selectedRules, isSearching)),
+              ],
             ),
+    );
+  }
+
+  Widget _buildList(
+    List<Rule> rules,
+    Set<dynamic> selectedRules,
+    bool isSearching,
+  ) {
+    final vm2 = ref.watch(
+      customOverwriteDateProvider(
+        widget.profileId,
+      ).select((state) => VM2(state.ruleTargets, state.subRules)),
+    );
+    final ruleTargets = vm2.a;
+    final subRules = vm2.b;
+    // Reordering addresses positions in the full list, so a narrowed list is
+    // shown without drag handles.
+    if (isSearching) {
+      return CommonScrollBar(
+        controller: _scrollController,
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+          ).copyWith(bottom: 24),
+          itemExtent: ruleItemHeight,
+          itemCount: rules.length,
+          itemBuilder: (_, index) {
+            final rule = rules[index];
+            return ItemPositionProvider(
+              position: ItemPosition.get(index, rules.length),
+              child: RuleItem(
+                checkInvalidHandler: (rule) {
+                  return _handleCheckInvalid(rule, ruleTargets, subRules);
+                },
+                isEditing: selectedRules.isNotEmpty,
+                isSelected: selectedRules.contains(rule.id),
+                rule: rule,
+                onSelected: () {
+                  _handleSelected(rule.id);
+                },
+                onEdit: (rule) {
+                  _handleAddOrUpdate(rule: rule);
+                },
+              ),
+            );
+          },
+        ),
+      );
+    }
+    return CommonScrollBar(
+      controller: _scrollController,
+      child: ReorderableListView.builder(
+        scrollController: _scrollController,
+        buildDefaultDragHandles: false,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ).copyWith(bottom: 24),
+        itemBuilder: (_, index) {
+          final rule = rules[index];
+          return _buildItem(
+            index: index,
+            checkInvalidHandler: (rule) {
+              return _handleCheckInvalid(rule, ruleTargets, subRules);
+            },
+            total: rules.length,
+            isEditing: selectedRules.isNotEmpty,
+            isSelected: selectedRules.contains(rule.id),
+            rule: rule,
+            onSelected: () {
+              _handleSelected(rule.id);
+            },
+            onEdit: (rule) {
+              _handleAddOrUpdate(rule: rule);
+            },
+          );
+        },
+        itemExtent: ruleItemHeight,
+        itemCount: rules.length,
+        proxyDecorator: (child, index, animation) {
+          final rule = rules[index];
+          return commonProxyDecorator(
+            _buildItem(
+              index: index,
+              checkInvalidHandler: (target) {
+                return _handleCheckInvalid(target, ruleTargets, subRules);
+              },
+              total: rules.length,
+              isEditing: selectedRules.isNotEmpty,
+              isSelected: selectedRules.contains(rule.id),
+              rule: rule,
+              onSelected: () {
+                _handleSelected(rule.id);
+              },
+              onEdit: (rule) {
+                _handleAddOrUpdate(rule: rule);
+              },
+            ),
+            index,
+            animation,
+          );
+        },
+        onReorderItem: _handleReorder,
+      ),
     );
   }
 }

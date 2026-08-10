@@ -440,6 +440,27 @@ extension RuleExt on Rule {
       ],
     ].join(',');
   }
+
+  /// Matches a search keyword against the match type, what it matches on and
+  /// where it routes to, so any of the three columns can be searched.
+  bool matchQuery(String query) {
+    final lowerQuery = query.trim().toLowerCase();
+    if (lowerQuery.isEmpty) {
+      return true;
+    }
+    return ruleAction.name.toLowerCase().contains(lowerQuery) ||
+        (realContent?.toLowerCase().contains(lowerQuery) ?? false) ||
+        (realTarget?.toLowerCase().contains(lowerQuery) ?? false);
+  }
+}
+
+extension RulesExt on List<Rule> {
+  List<Rule> filterQuery(String query) {
+    if (query.trim().isEmpty) {
+      return this;
+    }
+    return where((rule) => rule.matchQuery(query)).toList();
+  }
 }
 
 // @freezed

@@ -79,12 +79,41 @@ class _StandardContentState extends ConsumerState<StandardContent> {
     BaseNavigator.push(context, _EditGlobalAddedRules(_profileId));
   }
 
+  Widget _buildAddedRule(
+    List<Rule> rules,
+    int index,
+    Set<dynamic> selectedRules,
+  ) {
+    final rule = rules[index];
+    return ItemPositionProvider(
+      position: ItemPosition.get(index, rules.length),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: RuleItem(
+          hasMatch: true,
+          isEditing: selectedRules.isNotEmpty,
+          isSelected: selectedRules.contains(rule.id),
+          rule: rule,
+          onSelected: () {
+            _handleSelected(rule.id);
+          },
+          onEdit: (rule) {
+            _handleAddOrUpdate(rule);
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     _profileId = ProfileIdProvider.of(context)!.profileId;
+    final query = ref.watch(queryProvider(QueryTag.rules));
+    final isSearching = query.trim().isNotEmpty;
     final addedRules =
-        ref.watch(profileAddedRulesProvider(_profileId)).value ?? [];
+        (ref.watch(profileAddedRulesProvider(_profileId)).value ?? <Rule>[])
+            .filterQuery(query);
     final selectedRules = ref.watch(itemsProvider(_key));
     return CommonPopScope(
       onPop: (_) {
@@ -136,43 +165,39 @@ class _StandardContentState extends ConsumerState<StandardContent> {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          Consumer(
-            builder: (_, ref, _) {
-              return SliverReorderableList(
-                itemCount: addedRules.length,
-                itemBuilder: (_, index) {
-                  final rule = addedRules[index];
-                  final position = ItemPosition.get(index, addedRules.length);
-                  return ReorderableDelayedDragStartListener(
-                    key: ObjectKey(rule),
-                    index: index,
-                    child: ItemPositionProvider(
-                      position: position,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        child: RuleItem(
-                          hasMatch: true,
-                          isEditing: selectedRules.isNotEmpty,
-                          isSelected: selectedRules.contains(rule.id),
-                          rule: rule,
-                          onSelected: () {
-                            _handleSelected(rule.id);
-                          },
-                          onEdit: (rule) {
-                            _handleAddOrUpdate(rule);
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                itemExtent: ruleItemHeight,
-                onReorderItem: ref
-                    .read(profileAddedRulesProvider(_profileId).notifier)
-                    .order,
-              );
-            },
-          ),
+          if (addedRules.isNotEmpty)
+            const SliverToBoxAdapter(child: RuleListHeader()),
+          // Reordering addresses positions in the full list, so while a search
+          // narrows it down the list is shown without drag handles.
+          if (isSearching)
+            SliverList.builder(
+              itemCount: addedRules.length,
+              itemBuilder: (_, index) {
+                return SizedBox(
+                  height: ruleItemHeight,
+                  child: _buildAddedRule(addedRules, index, selectedRules),
+                );
+              },
+            )
+          else
+            Consumer(
+              builder: (_, ref, _) {
+                return SliverReorderableList(
+                  itemCount: addedRules.length,
+                  itemBuilder: (_, index) {
+                    return ReorderableDelayedDragStartListener(
+                      key: ObjectKey(addedRules[index]),
+                      index: index,
+                      child: _buildAddedRule(addedRules, index, selectedRules),
+                    );
+                  },
+                  itemExtent: ruleItemHeight,
+                  onReorderItem: ref
+                      .read(profileAddedRulesProvider(_profileId).notifier)
+                      .order,
+                );
+              },
+            ),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
           SliverToBoxAdapter(
             child: MoreActionButton(
@@ -198,16 +223,18 @@ class _ProfileRules extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appLocalizations = context.appLocalizations;
-    final rules = ref
+    final query = ref.watch(queryProvider(QueryTag.rules));
+    final allRules = ref
         .watch(
           clashConfigProvider(
             profileId,
           ).select((state) => VM(state.value?.rules ?? const <Rule>[])),
         )
         .a;
-    if (rules.isEmpty) {
+    if (allRules.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
+    final rules = allRules.filterQuery(query);
     return SliverMainAxisGroup(
       slivers: [
         SliverToBoxAdapter(
@@ -215,7 +242,9 @@ class _ProfileRules extends ConsumerWidget {
             info: Info(label: appLocalizations.profileRules),
             actions: [
               Text(
-                '${rules.length}',
+                rules.length == allRules.length
+                    ? '${rules.length}'
+                    : '${rules.length} / ${allRules.length}',
                 style: context.textTheme.bodyMedium?.copyWith(
                   color: context.colorScheme.onSurfaceVariant,
                 ),
@@ -234,7 +263,8 @@ class _ProfileRules extends ConsumerWidget {
             ),
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        const SliverToBoxAdapter(child: SizedBox(height: 4)),
+        if (rules.isNotEmpty) const SliverToBoxAdapter(child: RuleListHeader()),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList.builder(

@@ -9,10 +9,52 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-final ruleItemHeight =
-    globalState.measure.bodyLargeHeight +
-    globalState.measure.bodyMediumHeight +
-    12;
+final ruleItemHeight = globalState.measure.bodyMediumHeight + 26;
+
+/// Column widths shared by [RuleListHeader] and [RuleItem] so the rows line up
+/// as a table: match type, what it matches on, where it routes to.
+const _actionFlex = 4;
+const _contentFlex = 7;
+const _targetFlex = 4;
+
+/// Column titles for a list of [RuleItem]s.
+class RuleListHeader extends StatelessWidget {
+  const RuleListHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final appLocalizations = context.appLocalizations;
+    final style = context.textTheme.labelMedium?.copyWith(
+      color: context.colorScheme.onSurfaceVariant.opacity80,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            flex: _actionFlex,
+            child: Text(appLocalizations.proxyType, style: style, maxLines: 1),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: _contentFlex,
+            child: Text(appLocalizations.content, style: style, maxLines: 1),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: _targetFlex,
+            child: Text(
+              appLocalizations.splitStrategy,
+              style: style,
+              maxLines: 1,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class RuleItem extends StatelessWidget {
   final bool isSelected;
@@ -123,65 +165,62 @@ class RuleItem extends StatelessWidget {
   Widget _buildTitle(BuildContext context, VM2<bool, Color?> vm2) {
     final invalid = vm2.a;
     return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                final style = DefaultTextStyle.of(
-                  context,
-                ).style.toJetBrainsMono;
-                return Column(
+      child: Builder(
+        builder: (context) {
+          final style = DefaultTextStyle.of(context).style.toJetBrainsMono
+              .copyWith(fontSize: context.textTheme.bodyMedium?.fontSize);
+          return Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: _actionFlex,
+                child: TooltipText(
+                  text: Text(
+                    rule.ruleAction.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: _contentFlex,
+                child: TooltipText(
+                  text: Text(
+                    rule.realContent ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style.copyWith(color: style.color?.opacity60),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: _targetFlex,
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text(
-                      rule.ruleAction.name,
-                      style: style.copyWith(
-                        fontSize: context.textTheme.bodyLarge?.fontSize,
-                      ),
-                    ),
+                    if (invalid) _buildInfoWidget(context),
                     Flexible(
-                      child: Builder(
-                        builder: (context) {
-                          return TooltipText(
-                            text: Text(
-                              rule.realContent ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: style.copyWith(
-                                fontSize:
-                                    context.textTheme.bodyMedium?.fontSize,
-                                color: style.color?.opacity60,
-                              ),
-                            ),
-                          );
-                        },
+                      child: TooltipText(
+                        text: Text(
+                          rule.realTarget ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: style.copyWith(color: vm2.b),
+                        ),
                       ),
                     ),
                   ],
-                );
-              },
-            ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (invalid) _buildInfoWidget(context),
-              if (rule.realTarget != null)
-                Text(
-                  rule.realTarget!,
-                  style: context.textTheme.bodyMedium?.toJetBrainsMono.copyWith(
-                    color: vm2.b,
-                  ),
                 ),
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

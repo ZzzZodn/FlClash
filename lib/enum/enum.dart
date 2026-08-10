@@ -516,7 +516,7 @@ enum ImportOption { file, url }
 
 enum ScrollPositionCacheKey { tools, profiles, proxiesList, proxiesTabList }
 
-enum QueryTag { proxies, access }
+enum QueryTag { proxies, access, rules }
 
 enum LoadingTag {
   profiles,
