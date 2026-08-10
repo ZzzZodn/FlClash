@@ -229,11 +229,14 @@ class CommonScaffoldState extends State<CommonScaffold> {
     }
     return genActions([
       if (hasSearch && widget.searchState?.autoAddSearch == true)
-        IconButton(
+        // Tonal rather than bare, so the entry point to search reads as a
+        // button instead of disappearing into the app bar.
+        IconButton.filledTonal(
+          tooltip: context.appLocalizations.search,
           onPressed: () {
             _updateSearchState((state) => state?.copyWith(query: ''));
           },
-          icon: const Icon(Icons.search),
+          icon: const Icon(Icons.search, size: 22),
         ),
       ...actions,
     ]);

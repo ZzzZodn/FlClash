@@ -24,34 +24,60 @@ class RuleListHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
-    final style = context.textTheme.labelMedium?.copyWith(
-      color: context.colorScheme.onSurfaceVariant.opacity80,
+    final style = context.textTheme.labelSmall?.toBold.copyWith(
+      color: context.colorScheme.primary,
     );
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            flex: _actionFlex,
-            child: Text(appLocalizations.proxyType, style: style, maxLines: 1),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 4,
+            bottom: 6,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: _contentFlex,
-            child: Text(appLocalizations.content, style: style, maxLines: 1),
+          child: Row(
+            children: [
+              Expanded(
+                flex: _actionFlex,
+                child: Text(
+                  appLocalizations.proxyType,
+                  style: style,
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: _contentFlex,
+                child: Text(
+                  appLocalizations.content,
+                  style: style,
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: _targetFlex,
+                child: Text(
+                  appLocalizations.splitStrategy,
+                  style: style,
+                  maxLines: 1,
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: _targetFlex,
-            child: Text(
-              appLocalizations.splitStrategy,
-              style: style,
-              maxLines: 1,
-              textAlign: TextAlign.end,
-            ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 6),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: context.colorScheme.primary.opacity30,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
