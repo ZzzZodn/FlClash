@@ -284,6 +284,16 @@ class _CoreStatus extends _$CoreStatus with AutoDisposeNotifierMixin {
   }
 }
 
+/// Which column the rule search matches against.
+@riverpod
+class RuleQueryFieldState extends _$RuleQueryFieldState
+    with AutoDisposeNotifierMixin {
+  @override
+  RuleQueryField build() {
+    return RuleQueryField.content;
+  }
+}
+
 @riverpod
 class Query extends _$Query with AutoDisposeNotifierMixin {
   @override

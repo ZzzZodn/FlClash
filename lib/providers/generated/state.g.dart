@@ -2299,6 +2299,98 @@ final class ProfileFamily extends $Family
   String toString() => r'profileProvider';
 }
 
+/// Every policy the profile's rules route to, for the policy search
+/// suggestions. Covers both the profile's own rules and the edited ones.
+
+@ProviderFor(profileRuleTargets)
+final profileRuleTargetsProvider = ProfileRuleTargetsFamily._();
+
+/// Every policy the profile's rules route to, for the policy search
+/// suggestions. Covers both the profile's own rules and the edited ones.
+
+final class ProfileRuleTargetsProvider
+    extends $FunctionalProvider<List<String>, List<String>, List<String>>
+    with $Provider<List<String>> {
+  /// Every policy the profile's rules route to, for the policy search
+  /// suggestions. Covers both the profile's own rules and the edited ones.
+  ProfileRuleTargetsProvider._({
+    required ProfileRuleTargetsFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'profileRuleTargetsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileRuleTargetsHash();
+
+  @override
+  String toString() {
+    return r'profileRuleTargetsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<List<String>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<String> create(Ref ref) {
+    final argument = this.argument as int;
+    return profileRuleTargets(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<String>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProfileRuleTargetsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$profileRuleTargetsHash() =>
+    r'f6bc3a988199da713fa4e6f6880a616eaa820d7f';
+
+/// Every policy the profile's rules route to, for the policy search
+/// suggestions. Covers both the profile's own rules and the edited ones.
+
+final class ProfileRuleTargetsFamily extends $Family
+    with $FunctionalFamilyOverride<List<String>, int> {
+  ProfileRuleTargetsFamily._()
+    : super(
+        retry: null,
+        name: r'profileRuleTargetsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Every policy the profile's rules route to, for the policy search
+  /// suggestions. Covers both the profile's own rules and the edited ones.
+
+  ProfileRuleTargetsProvider call(int profileId) =>
+      ProfileRuleTargetsProvider._(argument: profileId, from: this);
+
+  @override
+  String toString() => r'profileRuleTargetsProvider';
+}
+
 @ProviderFor(overwriteType)
 final overwriteTypeProvider = OverwriteTypeFamily._();
 

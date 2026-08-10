@@ -671,7 +671,7 @@ final class GroupTestUrlsProvider
   }
 }
 
-String _$groupTestUrlsHash() => r'97974e8d08bf64b0d00a13d815918c1de9c67126';
+String _$groupTestUrlsHash() => r'96e7274dd056e0bc4476b6f3a0df649900b69bff';
 
 /// User supplied test urls, keyed by proxy group name. An entry overrides the
 /// group's own test url, falling back to [AppSettingProps.testUrl] when absent.

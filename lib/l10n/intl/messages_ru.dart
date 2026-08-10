@@ -115,6 +115,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "addRule": MessageLookupByLibrary.simpleMessage("Добавить правило"),
     "addSsid": MessageLookupByLibrary.simpleMessage("Добавить SSID"),
     "addedRules": MessageLookupByLibrary.simpleMessage("Добавленные правила"),
+    "addedRulesDesc": MessageLookupByLibrary.simpleMessage(
+      "Добавленные вами правила, применяются раньше правил профиля",
+    ),
     "additionalParameters": MessageLookupByLibrary.simpleMessage(
       "Дополнительные параметры",
     ),

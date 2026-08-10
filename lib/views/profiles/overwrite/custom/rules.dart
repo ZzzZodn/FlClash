@@ -153,10 +153,11 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
   Widget build(context) {
     final appLocalizations = context.appLocalizations;
     final query = ref.watch(queryProvider(QueryTag.rules));
+    final queryField = ref.watch(ruleQueryFieldStateProvider);
     final isSearching = query.trim().isNotEmpty;
     final rules =
         (ref.watch(profileCustomRulesProvider(_profileId)).value ?? <Rule>[])
-            .filterQuery(query);
+            .filterQuery(query, field: queryField);
     final selectedRules = ref.watch(itemsProvider(key));
     return CommonScaffold(
       title: appLocalizations.rule,
@@ -183,19 +184,21 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
         ),
         const SizedBox(width: 8),
       ],
-      searchState: AppBarSearchState(
-        onSearch: (value) {
-          ref.read(queryProvider(QueryTag.rules).notifier).value = value;
-        },
+      body: Column(
+        children: [
+          const SizedBox(height: 12),
+          RuleSearchBar(
+            targets: ref.watch(profileRuleTargetsProvider(_profileId)),
+          ),
+          const SizedBox(height: 16),
+          if (rules.isEmpty)
+            Expanded(child: NullStatus(label: appLocalizations.ruleEmpty))
+          else ...[
+            const RuleListHeader(),
+            Expanded(child: _buildList(rules, selectedRules, isSearching)),
+          ],
+        ],
       ),
-      body: rules.isEmpty
-          ? NullStatus(label: appLocalizations.ruleEmpty)
-          : Column(
-              children: [
-                const RuleListHeader(),
-                Expanded(child: _buildList(rules, selectedRules, isSearching)),
-              ],
-            ),
     );
   }
 

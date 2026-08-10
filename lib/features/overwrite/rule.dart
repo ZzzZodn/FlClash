@@ -5,9 +5,11 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/clash_config.dart';
 import 'package:fl_clash/models/state.dart';
+import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final ruleItemHeight = globalState.measure.bodyMediumHeight + 26;
 
@@ -16,6 +18,238 @@ final ruleItemHeight = globalState.measure.bodyMediumHeight + 26;
 const _actionFlex = 4;
 const _contentFlex = 7;
 const _targetFlex = 4;
+
+/// Search bar for a rule list: a keyword box plus the column it searches.
+///
+/// Searching by policy turns the box into a filtering dropdown, so the
+/// policies in use can be completed while typing or picked from the arrow.
+class RuleSearchBar extends ConsumerStatefulWidget {
+  final List<String> targets;
+
+  const RuleSearchBar({super.key, required this.targets});
+
+  @override
+  ConsumerState<RuleSearchBar> createState() => _RuleSearchBarState();
+}
+
+class _RuleSearchBarState extends ConsumerState<RuleSearchBar> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: ref.read(queryProvider(QueryTag.rules)),
+    );
+    _controller.addListener(_handleChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleChanged() {
+    ref.read(queryProvider(QueryTag.rules).notifier).value = _controller.text;
+  }
+
+  void _handleFieldChanged(RuleQueryField? field) {
+    if (field == null) {
+      return;
+    }
+    ref.read(ruleQueryFieldStateProvider.notifier).value = field;
+    // The keyword rarely carries over between columns, so start clean.
+    _controller.clear();
+  }
+
+  String _fieldLabel(RuleQueryField field) {
+    final appLocalizations = context.appLocalizations;
+    return switch (field) {
+      RuleQueryField.content => appLocalizations.content,
+      RuleQueryField.target => appLocalizations.splitStrategy,
+    };
+  }
+
+  InputDecorationTheme get _inputTheme {
+    return InputDecorationTheme(
+      isDense: true,
+      filled: true,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    );
+  }
+
+  Widget _buildKeywordField(RuleQueryField field) {
+    final appLocalizations = context.appLocalizations;
+    if (field == RuleQueryField.target) {
+      return DropdownMenu<String>(
+        controller: _controller,
+        enableFilter: true,
+        requestFocusOnTap: true,
+        expandedInsets: EdgeInsets.zero,
+        menuHeight: 320,
+        hintText: appLocalizations.search,
+        inputDecorationTheme: _inputTheme,
+        leadingIcon: const Icon(Icons.search, size: 20),
+        dropdownMenuEntries: [
+          for (final target in widget.targets)
+            DropdownMenuEntry(value: target, label: target),
+        ],
+      );
+    }
+    return TextField(
+      controller: _controller,
+      maxLines: 1,
+      textInputAction: TextInputAction.search,
+      inputFormatters: TextInputLimits.limit(TextInputLimits.search),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: true,
+        hintText: appLocalizations.search,
+        prefixIcon: const Icon(Icons.search, size: 20),
+        suffixIcon: _controller.text.isEmpty
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: _controller.clear,
+              ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final field = ref.watch(ruleQueryFieldStateProvider);
+    ref.watch(queryProvider(QueryTag.rules));
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        spacing: 8,
+        children: [
+          Expanded(flex: 3, child: _buildKeywordField(field)),
+          SizedBox(
+            width: 148,
+            child: DropdownMenu<RuleQueryField>(
+              initialSelection: field,
+              expandedInsets: EdgeInsets.zero,
+              requestFocusOnTap: false,
+              inputDecorationTheme: _inputTheme,
+              onSelected: _handleFieldChanged,
+              dropdownMenuEntries: [
+                for (final item in RuleQueryField.values)
+                  DropdownMenuEntry(value: item, label: _fieldLabel(item)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Frames a rule section, so the added rules and the profile's own rules read
+/// as two separate blocks rather than one long run of rows.
+class RuleSectionBox extends StatelessWidget {
+  final List<Widget> slivers;
+
+  const RuleSectionBox({super.key, required this.slivers});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      sliver: DecoratedSliver(
+        decoration: ShapeDecoration(
+          color: context.colorScheme.surfaceContainerLow.opacity60,
+          shape: RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: context.colorScheme.surfaceContainerHighest,
+            ),
+          ),
+        ),
+        sliver: SliverMainAxisGroup(
+          slivers: [
+            const SliverToBoxAdapter(child: SizedBox(height: 12)),
+            ...slivers,
+            const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Title above a rule list, set apart from the rules themselves.
+class RuleSectionTitle extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final List<Widget> actions;
+
+  const RuleSectionTitle({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.actions = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: globalState.measure.titleMediumHeight,
+                margin: const EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  style: context.textTheme.titleMedium?.toBold,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (actions.isNotEmpty) ...[const SizedBox(width: 8), ...actions],
+            ],
+          ),
+          if (subtitle != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 14, top: 4),
+              child: Text(
+                subtitle!,
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: context.colorScheme.onSurfaceVariant.opacity80,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 /// Column titles for a list of [RuleItem]s.
 class RuleListHeader extends StatelessWidget {

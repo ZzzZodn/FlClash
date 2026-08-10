@@ -669,6 +669,24 @@ Profile? profile(Ref ref, int? profileId) {
   );
 }
 
+/// Every policy the profile's rules route to, for the policy search
+/// suggestions. Covers both the profile's own rules and the edited ones.
+@riverpod
+List<String> profileRuleTargets(Ref ref, int profileId) {
+  final addedRules =
+      ref.watch(profileAddedRulesProvider(profileId)).value ?? [];
+  final customRules =
+      ref.watch(profileCustomRulesProvider(profileId)).value ?? [];
+  final ownRules = ref
+      .watch(
+        clashConfigProvider(
+          profileId,
+        ).select((state) => VM(state.value?.rules ?? const <Rule>[])),
+      )
+      .a;
+  return [...addedRules, ...customRules, ...ownRules].targets;
+}
+
 @riverpod
 OverwriteType overwriteType(Ref ref, int? profileId) {
   return ref.watch(

@@ -441,25 +441,47 @@ extension RuleExt on Rule {
     ].join(',');
   }
 
-  /// Matches a search keyword against the match type, what it matches on and
-  /// where it routes to, so any of the three columns can be searched.
-  bool matchQuery(String query) {
+  /// Matches a search keyword against one column: what the rule matches on
+  /// (including its match type), or where it routes to.
+  bool matchQuery(
+    String query, {
+    RuleQueryField field = RuleQueryField.content,
+  }) {
     final lowerQuery = query.trim().toLowerCase();
     if (lowerQuery.isEmpty) {
       return true;
     }
-    return ruleAction.name.toLowerCase().contains(lowerQuery) ||
+    return switch (field) {
+      RuleQueryField.content =>
         (realContent?.toLowerCase().contains(lowerQuery) ?? false) ||
-        (realTarget?.toLowerCase().contains(lowerQuery) ?? false);
+            ruleAction.name.toLowerCase().contains(lowerQuery),
+      RuleQueryField.target =>
+        realTarget?.toLowerCase().contains(lowerQuery) ?? false,
+    };
   }
 }
 
 extension RulesExt on List<Rule> {
-  List<Rule> filterQuery(String query) {
+  List<Rule> filterQuery(
+    String query, {
+    RuleQueryField field = RuleQueryField.content,
+  }) {
     if (query.trim().isEmpty) {
       return this;
     }
-    return where((rule) => rule.matchQuery(query)).toList();
+    return where((rule) => rule.matchQuery(query, field: field)).toList();
+  }
+
+  /// Every policy the rules route to, for the policy search suggestions.
+  List<String> get targets {
+    final targets = <String>{};
+    for (final rule in this) {
+      final target = rule.realTarget;
+      if (target != null && target.isNotEmpty) {
+        targets.add(target);
+      }
+    }
+    return targets.toList()..sort();
   }
 }
 

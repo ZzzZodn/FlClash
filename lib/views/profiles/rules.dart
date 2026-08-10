@@ -1,6 +1,5 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/views/profiles/overwrite/custom/rules.dart';
@@ -29,11 +28,6 @@ class ProfileRulesView extends ConsumerWidget {
           profileId: profileId,
           child: CommonScaffold(
             title: context.appLocalizations.rule,
-            searchState: AppBarSearchState(
-              onSearch: (value) {
-                ref.read(queryProvider(QueryTag.rules).notifier).value = value;
-              },
-            ),
             body: const CustomScrollView(slivers: [StandardContent()]),
           ),
         ),
@@ -57,6 +51,8 @@ class _ApplyProfileOnDisposeState extends State<_ApplyProfileOnDispose> {
     super.dispose();
     final container = globalState.container;
     container.read(queryProvider(QueryTag.rules).notifier).value = '';
+    container.read(ruleQueryFieldStateProvider.notifier).value =
+        RuleQueryField.content;
     container.read(setupActionProvider.notifier).autoApplyProfile();
   }
 

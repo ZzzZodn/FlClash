@@ -35,10 +35,20 @@ void main() {
       expect(_rules[0].matchQuery('geoip'), isFalse);
     });
 
-    test('matches the target', () {
-      expect(_rules[1].matchQuery('direct'), isTrue);
-      expect(_rules[2].matchQuery('reject'), isTrue);
-      expect(_rules[0].matchQuery('direct'), isFalse);
+    test('matches the target only in target mode', () {
+      const target = RuleQueryField.target;
+      expect(_rules[1].matchQuery('direct', field: target), isTrue);
+      expect(_rules[2].matchQuery('reject', field: target), isTrue);
+      expect(_rules[0].matchQuery('direct', field: target), isFalse);
+    });
+
+    test('each mode ignores the other column', () {
+      // 'CN' is the content of a rule whose target is DIRECT.
+      expect(_rules[1].matchQuery('direct'), isFalse);
+      expect(
+        _rules[1].matchQuery('CN', field: RuleQueryField.target),
+        isFalse,
+      );
     });
 
     test('matches the rule provider for a rule set', () {
@@ -57,8 +67,13 @@ void main() {
 
   group('List<Rule>.filterQuery', () {
     test('keeps only matching rules', () {
-      expect(_rules.filterQuery('reject').map((e) => e.id), [3]);
       expect(_rules.filterQuery('com').map((e) => e.id), [1]);
+      expect(
+        _rules
+            .filterQuery('reject', field: RuleQueryField.target)
+            .map((e) => e.id),
+        [3],
+      );
     });
 
     test('returns the list untouched for a blank query', () {
@@ -67,6 +82,17 @@ void main() {
 
     test('returns empty when nothing matches', () {
       expect(_rules.filterQuery('nothing-here'), isEmpty);
+    });
+  });
+
+  group('List<Rule>.targets', () {
+    test('collects the policies in use, sorted and deduplicated', () {
+      expect(_rules.targets, ['DIRECT', 'REJECT', 'Streaming']);
+    });
+
+    test('skips rules without a target', () {
+      const rules = [Rule(id: 1, ruleAction: RuleAction.MATCH)];
+      expect(rules.targets, isEmpty);
     });
   });
 }

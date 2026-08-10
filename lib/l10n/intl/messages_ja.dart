@@ -102,6 +102,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "addRule": MessageLookupByLibrary.simpleMessage("ルールを追加"),
     "addSsid": MessageLookupByLibrary.simpleMessage("SSIDを追加"),
     "addedRules": MessageLookupByLibrary.simpleMessage("追加ルール"),
+    "addedRulesDesc": MessageLookupByLibrary.simpleMessage(
+      "追加したルール。プロファイルのルールより先に照合されます",
+    ),
     "additionalParameters": MessageLookupByLibrary.simpleMessage("追加パラメータ"),
     "address": MessageLookupByLibrary.simpleMessage("アドレス"),
     "addressHelp": MessageLookupByLibrary.simpleMessage("WebDAVサーバーアドレス"),

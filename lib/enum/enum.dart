@@ -518,6 +518,9 @@ enum ScrollPositionCacheKey { tools, profiles, proxiesList, proxiesTabList }
 
 enum QueryTag { proxies, access, rules }
 
+/// Which rule column a search keyword is matched against.
+enum RuleQueryField { content, target }
+
 enum LoadingTag {
   profiles,
   backup_restore,

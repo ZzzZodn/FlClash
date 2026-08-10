@@ -1309,6 +1309,65 @@ abstract class _$CoreStatus extends $Notifier<CoreStatus> {
   }
 }
 
+/// Which column the rule search matches against.
+
+@ProviderFor(RuleQueryFieldState)
+final ruleQueryFieldStateProvider = RuleQueryFieldStateProvider._();
+
+/// Which column the rule search matches against.
+final class RuleQueryFieldStateProvider
+    extends $NotifierProvider<RuleQueryFieldState, RuleQueryField> {
+  /// Which column the rule search matches against.
+  RuleQueryFieldStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'ruleQueryFieldStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$ruleQueryFieldStateHash();
+
+  @$internal
+  @override
+  RuleQueryFieldState create() => RuleQueryFieldState();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RuleQueryField value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RuleQueryField>(value),
+    );
+  }
+}
+
+String _$ruleQueryFieldStateHash() =>
+    r'1c90745af998f69658607224d178cbdb9239b00d';
+
+/// Which column the rule search matches against.
+
+abstract class _$RuleQueryFieldState extends $Notifier<RuleQueryField> {
+  RuleQueryField build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<RuleQueryField, RuleQueryField>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<RuleQueryField, RuleQueryField>,
+              RuleQueryField,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(Query)
 final queryProvider = QueryFamily._();
 

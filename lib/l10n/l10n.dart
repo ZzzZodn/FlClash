@@ -2964,6 +2964,16 @@ class AppLocalizations {
     return Intl.message('Added rules', name: 'addedRules', desc: '', args: []);
   }
 
+  /// `Rules you added, matched before the profile's own rules`
+  String get addedRulesDesc {
+    return Intl.message(
+      'Rules you added, matched before the profile\'s own rules',
+      name: 'addedRulesDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Profile rules`
   String get profileRules {
     return Intl.message(

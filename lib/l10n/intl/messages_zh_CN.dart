@@ -100,6 +100,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "addRule": MessageLookupByLibrary.simpleMessage("添加规则"),
     "addSsid": MessageLookupByLibrary.simpleMessage("添加SSID"),
     "addedRules": MessageLookupByLibrary.simpleMessage("附加规则"),
+    "addedRulesDesc": MessageLookupByLibrary.simpleMessage(
+      "你添加的规则，优先于配置自带规则匹配",
+    ),
     "additionalParameters": MessageLookupByLibrary.simpleMessage("附加参数"),
     "address": MessageLookupByLibrary.simpleMessage("地址"),
     "addressHelp": MessageLookupByLibrary.simpleMessage("WebDAV服务器地址"),
