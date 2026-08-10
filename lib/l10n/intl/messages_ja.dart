@@ -739,6 +739,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "スクリプトモード、外部拡張スクリプトを使用し、ワンクリックで設定を上書きする機能を提供",
     ),
+    "scriptModeRuleTip": MessageLookupByLibrary.simpleMessage(
+      "このプロファイルはスクリプト上書きモードのため、ルール一覧はありません。上書きページを開いてモードを切り替えますか?",
+    ),
     "search": MessageLookupByLibrary.simpleMessage("検索"),
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
     "secondsCount": m22,

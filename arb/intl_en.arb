@@ -382,6 +382,7 @@
   "overrideMode": "Override mode",
   "standardModeDesc": "Standard mode, override basic configuration, provide simple rule addition capability",
   "scriptModeDesc": "Script mode, use external extension scripts, provide one-click override configuration capability",
+  "scriptModeRuleTip": "This profile uses script override mode, which has no rule list. Open the override page to switch modes?",
   "addedRules": "Added rules",
   "controlGlobalAddedRules": "Control global added rules",
   "overrideScript": "Override script",

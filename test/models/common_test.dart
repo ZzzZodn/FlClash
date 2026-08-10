@@ -108,6 +108,35 @@ void main() {
     });
   });
 
+  group('Group test url override', () {
+    const groups = [
+      Group(
+        name: 'Auto',
+        type: GroupType.URLTest,
+        testUrl: 'https://group.test/generate_204',
+      ),
+      Group(name: 'Manual', type: GroupType.Selector),
+    ];
+
+    test('replaces the group own test url', () {
+      final next = groups.withTestUrlOverrides({
+        'Auto': 'https://custom.test/generate_204',
+      });
+
+      expect(next.getGroup('Auto')?.testUrl, 'https://custom.test/generate_204');
+      expect(next.getGroup('Manual')?.testUrl, isNull);
+    });
+
+    test('keeps groups without an override untouched', () {
+      expect(groups.withTestUrlOverrides({}), same(groups));
+      expect(
+        groups.withTestUrlOverrides({'Other': 'https://custom.test'}),
+        groups,
+      );
+      expect(groups.first.withTestUrlOverride({'Auto': ''}), groups.first);
+    });
+  });
+
   group('IpInfo parsers', () {
     test('parse supported response shapes', () {
       expect(

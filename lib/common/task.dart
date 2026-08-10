@@ -72,7 +72,9 @@ Future<List<Group>> _toGroupsTask(ComputeGroupsState state) async {
         return group;
       })
       .toList();
-  final groups = groupsRaw.map((e) => Group.fromJson(e)).toList();
+  final groups = groupsRaw
+      .map((e) => Group.fromJson(e).withTestUrlOverride(state.groupTestUrls))
+      .toList();
   return computeSort(
     groups: groups,
     sortType: sortType,

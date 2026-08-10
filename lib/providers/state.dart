@@ -15,13 +15,22 @@ import 'database.dart';
 
 part 'generated/state.g.dart';
 
+/// Proxy groups with the user's per group test url applied, so delay tests,
+/// delay labels and sorting all agree on which url a group is measured with.
+@riverpod
+List<Group> effectiveGroups(Ref ref) {
+  final groups = ref.watch(groupsProvider);
+  final groupTestUrls = ref.watch(groupTestUrlsProvider);
+  return groups.withTestUrlOverrides(groupTestUrls);
+}
+
 @riverpod
 GroupsState currentGroupsState(Ref ref) {
   final mode = ref.watch(
     patchClashConfigProvider.select((state) => state.mode),
   );
   final groups = ref.watch(
-    groupsProvider.select(
+    effectiveGroupsProvider.select(
       (state) => state.map((item) {
         return item.copyWith(
           now: '',
@@ -468,7 +477,7 @@ int proxiesColumns(Ref ref) {
 
 @riverpod
 SelectedProxyState realSelectedProxyState(Ref ref, String proxyName) {
-  final groups = ref.watch(groupsProvider);
+  final groups = ref.watch(effectiveGroupsProvider);
   final selectedMap = ref.watch(selectedMapProvider);
   return computeRealSelectedProxyState(
     proxyName,

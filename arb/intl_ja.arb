@@ -382,6 +382,7 @@
   "overrideMode": "上書きモード",
   "standardModeDesc": "標準モード、基本設定を上書きし、シンプルなルール追加機能を提供",
   "scriptModeDesc": "スクリプトモード、外部拡張スクリプトを使用し、ワンクリックで設定を上書きする機能を提供",
+  "scriptModeRuleTip": "このプロファイルはスクリプト上書きモードのため、ルール一覧はありません。上書きページを開いてモードを切り替えますか?",
   "addedRules": "追加ルール",
   "controlGlobalAddedRules": "グローバル追加ルールを制御",
   "overrideScript": "上書きスクリプト",

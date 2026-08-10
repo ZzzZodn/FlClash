@@ -753,11 +753,13 @@ class ProxiesAction extends _$ProxiesAction {
           final selectedMap = ref.read(
             currentProfileProvider.select((state) => state?.selectedMap ?? {}),
           );
+          final groupTestUrls = ref.read(groupTestUrlsProvider);
           return coreController.getProxiesGroups(
             selectedMap: selectedMap,
             sortType: sortType,
             delayMap: delayMap,
             defaultTestUrl: testUrl,
+            groupTestUrls: groupTestUrls,
           );
         },
         retryIf: (res) => res.isEmpty,

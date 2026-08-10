@@ -913,6 +913,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "Script mode, use external extension scripts, provide one-click override configuration capability",
     ),
+    "scriptModeRuleTip": MessageLookupByLibrary.simpleMessage(
+      "This profile uses script override mode, which has no rule list. Open the override page to switch modes?",
+    ),
     "search": MessageLookupByLibrary.simpleMessage("Search"),
     "seconds": MessageLookupByLibrary.simpleMessage("Seconds"),
     "secondsCount": m22,

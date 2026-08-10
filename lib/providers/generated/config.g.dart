@@ -632,6 +632,68 @@ abstract class _$ExcludeSSIDs extends $Notifier<List<String>> {
   }
 }
 
+/// User supplied test urls, keyed by proxy group name. An entry overrides the
+/// group's own test url, falling back to [AppSettingProps.testUrl] when absent.
+
+@ProviderFor(GroupTestUrls)
+final groupTestUrlsProvider = GroupTestUrlsProvider._();
+
+/// User supplied test urls, keyed by proxy group name. An entry overrides the
+/// group's own test url, falling back to [AppSettingProps.testUrl] when absent.
+final class GroupTestUrlsProvider
+    extends $NotifierProvider<GroupTestUrls, Map<String, String>> {
+  /// User supplied test urls, keyed by proxy group name. An entry overrides the
+  /// group's own test url, falling back to [AppSettingProps.testUrl] when absent.
+  GroupTestUrlsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'groupTestUrlsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$groupTestUrlsHash();
+
+  @$internal
+  @override
+  GroupTestUrls create() => GroupTestUrls();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, String>>(value),
+    );
+  }
+}
+
+String _$groupTestUrlsHash() => r'97974e8d08bf64b0d00a13d815918c1de9c67126';
+
+/// User supplied test urls, keyed by proxy group name. An entry overrides the
+/// group's own test url, falling back to [AppSettingProps.testUrl] when absent.
+
+abstract class _$GroupTestUrls extends $Notifier<Map<String, String>> {
+  Map<String, String> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<Map<String, String>, Map<String, String>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<String, String>, Map<String, String>>,
+              Map<String, String>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(_config)
 final configProvider = _ConfigProvider._();
 
@@ -670,4 +732,4 @@ final class _ConfigProvider extends $FunctionalProvider<Config, Config, Config>
   }
 }
 
-String _$_configHash() => r'7f29da1e31a3393fb36ab43c21f0d1b38223afec';
+String _$_configHash() => r'eee83e4942daa83df088403e7e2493e785bce02f';

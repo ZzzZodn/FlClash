@@ -637,6 +637,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "脚本模式，使用外部扩展脚本，提供一键覆写配置的能力",
     ),
+    "scriptModeRuleTip": MessageLookupByLibrary.simpleMessage(
+      "当前配置使用脚本覆写模式，没有规则列表。是否前往覆写页面切换模式？",
+    ),
     "search": MessageLookupByLibrary.simpleMessage("搜索"),
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
     "secondsCount": m22,

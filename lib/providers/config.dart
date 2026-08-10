@@ -105,6 +105,34 @@ class ExcludeSSIDs extends _$ExcludeSSIDs with AutoDisposeNotifierMixin {
   }
 }
 
+/// User supplied test urls, keyed by proxy group name. An entry overrides the
+/// group's own test url, falling back to [AppSettingProps.testUrl] when absent.
+@riverpod
+class GroupTestUrls extends _$GroupTestUrls with AutoDisposeNotifierMixin {
+  @override
+  Map<String, String> build() {
+    return {};
+  }
+
+  /// Returns whether the stored url changed.
+  bool setTestUrl(String groupName, String? testUrl) {
+    final nextTestUrl = testUrl?.trim() ?? '';
+    final next = Map<String, String>.from(state);
+    if (nextTestUrl.isEmpty) {
+      if (next.remove(groupName) == null) {
+        return false;
+      }
+    } else {
+      if (next[groupName] == nextTestUrl) {
+        return false;
+      }
+      next[groupName] = nextTestUrl;
+    }
+    value = next;
+    return true;
+  }
+}
+
 @Riverpod(name: 'configProvider')
 Config _config(Ref ref) {
   final appSettingProps = ref.watch(appSettingProvider);
@@ -119,6 +147,7 @@ Config _config(Ref ref) {
   final proxiesStyleProps = ref.watch(proxiesStyleSettingProvider);
   final patchClashConfig = ref.watch(patchClashConfigProvider);
   final excludeSSIDs = ref.watch(excludeSSIDsProvider);
+  final groupTestUrls = ref.watch(groupTestUrlsProvider);
   return Config(
     appSettingProps: appSettingProps,
     windowProps: windowProps,
@@ -132,6 +161,7 @@ Config _config(Ref ref) {
     proxiesStyleProps: proxiesStyleProps,
     patchClashConfig: patchClashConfig,
     excludeSSIDs: excludeSSIDs,
+    groupTestUrls: groupTestUrls,
   );
 }
 
@@ -155,5 +185,6 @@ List<Override> buildConfigOverrides(Config config) {
       (_, _) => config.patchClashConfig,
     ),
     excludeSSIDsProvider.overrideWithBuild((_, _) => config.excludeSSIDs),
+    groupTestUrlsProvider.overrideWithBuild((_, _) => config.groupTestUrls),
   ];
 }

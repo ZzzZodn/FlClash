@@ -2949,6 +2949,16 @@ class AppLocalizations {
     );
   }
 
+  /// `This profile uses script override mode, which has no rule list. Open the override page to switch modes?`
+  String get scriptModeRuleTip {
+    return Intl.message(
+      'This profile uses script override mode, which has no rule list. Open the override page to switch modes?',
+      name: 'scriptModeRuleTip',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Added rules`
   String get addedRules {
     return Intl.message('Added rules', name: 'addedRules', desc: '', args: []);

@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'add.dart';
 import 'edit.dart';
 import 'preview.dart';
+import 'rules.dart';
 
 class ProfilesView extends StatefulWidget {
   const ProfilesView({super.key});
@@ -273,6 +274,22 @@ class ProfileItem extends StatelessWidget {
     BaseNavigator.push(context, OverwriteView(profileId: id));
   }
 
+  Future<void> _handlePushRulesPage(BuildContext context) async {
+    if (profile.overwriteType != OverwriteType.script) {
+      BaseNavigator.push(context, ProfileRulesView(profile.id));
+      return;
+    }
+    final appLocalizations = context.appLocalizations;
+    final res = await globalState.showMessage(
+      title: appLocalizations.rule,
+      message: TextSpan(text: appLocalizations.scriptModeRuleTip),
+    );
+    if (res != true || !context.mounted) {
+      return;
+    }
+    _handlePushGenProfilePage(context, profile.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
@@ -309,6 +326,13 @@ class ProfileItem extends StatelessWidget {
                               label: appLocalizations.edit,
                               onPressed: () {
                                 _handleShowEditExtendPage(context);
+                              },
+                            ),
+                            PopupMenuItemData(
+                              icon: Icons.rule,
+                              label: appLocalizations.rule,
+                              onPressed: () {
+                                _handlePushRulesPage(context);
                               },
                             ),
                             PopupMenuItemData(

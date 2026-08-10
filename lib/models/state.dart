@@ -329,6 +329,7 @@ abstract class ComputeGroupsState with _$ComputeGroupsState {
     required DelayMap delayMap,
     required Map<String, String> selectedMap,
     required String defaultTestUrl,
+    @Default({}) Map<String, String> groupTestUrls,
   }) = _ComputeGroupsState;
 }
 

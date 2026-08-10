@@ -205,6 +205,7 @@ void main() {
       expect(config.hotKeyActions, isEmpty);
       expect(config.patchClashConfig, const PatchClashConfig());
       expect(config.excludeSSIDs, isEmpty);
+      expect(config.groupTestUrls, isEmpty);
     });
 
     test('reflects updated sub-provider values', () {
@@ -216,12 +217,42 @@ void main() {
       container
           .read(excludeSSIDsProvider.notifier)
           .update((_) => ['Office Wi-Fi']);
+      container
+          .read(groupTestUrlsProvider.notifier)
+          .setTestUrl('Auto', 'https://custom.test');
 
       final config = container.read(configProvider);
       expect(config.currentProfileId, 99);
       expect(config.overrideDns, true);
       expect(config.patchClashConfig.mixedPort, 7890);
       expect(config.excludeSSIDs, ['Office Wi-Fi']);
+      expect(config.groupTestUrls, {'Auto': 'https://custom.test'});
+    });
+  });
+
+  group('GroupTestUrls provider', () {
+    test('default value is empty', () {
+      expect(container.read(groupTestUrlsProvider), isEmpty);
+    });
+
+    test('stores a trimmed url per group', () {
+      final notifier = container.read(groupTestUrlsProvider.notifier);
+
+      expect(notifier.setTestUrl('Auto', '  https://custom.test  '), true);
+      expect(container.read(groupTestUrlsProvider), {
+        'Auto': 'https://custom.test',
+      });
+
+      expect(notifier.setTestUrl('Auto', 'https://custom.test'), false);
+    });
+
+    test('clears the entry for a blank url', () {
+      final notifier = container.read(groupTestUrlsProvider.notifier);
+      notifier.setTestUrl('Auto', 'https://custom.test');
+
+      expect(notifier.setTestUrl('Auto', '   '), true);
+      expect(container.read(groupTestUrlsProvider), isEmpty);
+      expect(notifier.setTestUrl('Auto', null), false);
     });
   });
 
@@ -233,7 +264,7 @@ void main() {
         overrideDns: true,
       );
       final overrides = buildConfigOverrides(config);
-      expect(overrides.length, 12);
+      expect(overrides.length, 13);
 
       final overrideContainer = ProviderContainer(overrides: overrides);
       addTearDown(overrideContainer.dispose);
@@ -245,6 +276,10 @@ void main() {
         config.patchClashConfig,
       );
       expect(overrideContainer.read(excludeSSIDsProvider), config.excludeSSIDs);
+      expect(
+        overrideContainer.read(groupTestUrlsProvider),
+        config.groupTestUrls,
+      );
       expect(
         overrideContainer.read(appSettingProvider).onlyStatisticsProxy,
         false,

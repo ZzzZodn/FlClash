@@ -960,6 +960,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "Режим скрипта, использование внешних расширяющих скриптов, предоставление возможности переопределения конфигурации одним кликом",
     ),
+    "scriptModeRuleTip": MessageLookupByLibrary.simpleMessage(
+      "Этот профиль использует режим переопределения скриптом, в котором нет списка правил. Открыть страницу переопределения, чтобы сменить режим?",
+    ),
     "search": MessageLookupByLibrary.simpleMessage("Поиск"),
     "seconds": MessageLookupByLibrary.simpleMessage("Секунд"),
     "secondsCount": m22,

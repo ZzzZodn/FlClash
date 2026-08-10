@@ -313,6 +313,7 @@ enum DashboardWidget {
     platforms: desktopPlatforms,
   ),
   intranetIp(GridItem(crossAxisCellCount: 4, child: IntranetIP())),
+  port(GridItem(crossAxisCellCount: 4, child: PortInfo())),
   memoryInfo(GridItem(crossAxisCellCount: 4, child: MemoryInfo()));
 
   final GridItem widget;

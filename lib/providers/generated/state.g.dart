@@ -8,6 +8,54 @@ part of '../state.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Proxy groups with the user's per group test url applied, so delay tests,
+/// delay labels and sorting all agree on which url a group is measured with.
+
+@ProviderFor(effectiveGroups)
+final effectiveGroupsProvider = EffectiveGroupsProvider._();
+
+/// Proxy groups with the user's per group test url applied, so delay tests,
+/// delay labels and sorting all agree on which url a group is measured with.
+
+final class EffectiveGroupsProvider
+    extends $FunctionalProvider<List<Group>, List<Group>, List<Group>>
+    with $Provider<List<Group>> {
+  /// Proxy groups with the user's per group test url applied, so delay tests,
+  /// delay labels and sorting all agree on which url a group is measured with.
+  EffectiveGroupsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'effectiveGroupsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$effectiveGroupsHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<Group>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<Group> create(Ref ref) {
+    return effectiveGroups(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<Group> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<Group>>(value),
+    );
+  }
+}
+
+String _$effectiveGroupsHash() => r'afb0d5123daf9eb3e2454e10f4f7feab6c3349f1';
 
 @ProviderFor(currentGroupsState)
 final currentGroupsStateProvider = CurrentGroupsStateProvider._();
@@ -49,7 +97,7 @@ final class CurrentGroupsStateProvider
 }
 
 String _$currentGroupsStateHash() =>
-    r'dbf8f02606a31486c99d7b89d19914cd5a1fc496';
+    r'c05c26c74ce06a3d98b420b5982972606c8beac2';
 
 @ProviderFor(navigationItemsState)
 final navigationItemsStateProvider = NavigationItemsStateProvider._();
@@ -1568,7 +1616,7 @@ final class RealSelectedProxyStateProvider
 }
 
 String _$realSelectedProxyStateHash() =>
-    r'42fa131419f0a26e30c4f5269bf020893b7f828c';
+    r'ca56f5b21d98b17d9f9ef08aa194cbac53354912';
 
 final class RealSelectedProxyStateFamily extends $Family
     with $FunctionalFamilyOverride<SelectedProxyState, String> {

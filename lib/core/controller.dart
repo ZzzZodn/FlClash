@@ -117,6 +117,7 @@ class CoreController {
     required DelayMap delayMap,
     required Map<String, String> selectedMap,
     required String defaultTestUrl,
+    Map<String, String> groupTestUrls = const {},
   }) async {
     final proxiesData = await _interface.getProxies();
     return toGroupsTask(
@@ -126,6 +127,7 @@ class CoreController {
         delayMap: delayMap,
         selectedMap: selectedMap,
         defaultTestUrl: defaultTestUrl,
+        groupTestUrls: groupTestUrls,
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 
 class Migration {
@@ -7,7 +8,7 @@ class Migration {
 
   Migration._internal();
 
-  final currentVersion = 1;
+  final currentVersion = 2;
 
   factory Migration() {
     _instance ??= Migration._internal();
@@ -40,6 +41,7 @@ class Migration {
       }
       data = await _oldToNow(configMap);
     }
+    _appendDashboardWidget(data.configMap, DashboardWidget.port);
     final res = await sync(data);
     await preferences.setVersion(currentVersion);
     return res;
@@ -47,6 +49,23 @@ class Migration {
 
   Future<MigrationData> _oldToNow(Map<String, Object?> configMap) async {
     return oldToNowTask(configMap);
+  }
+
+  /// Adds a dashboard widget introduced after the stored layout was saved, so
+  /// existing users see it without rebuilding their dashboard by hand.
+  void _appendDashboardWidget(
+    Map<String, Object?>? configMap,
+    DashboardWidget widget,
+  ) {
+    final appSettingProps = configMap?['appSettingProps'];
+    if (appSettingProps is! Map) {
+      return;
+    }
+    final dashboardWidgets = appSettingProps['dashboardWidgets'];
+    if (dashboardWidgets is! List || dashboardWidgets.contains(widget.name)) {
+      return;
+    }
+    appSettingProps['dashboardWidgets'] = [...dashboardWidgets, widget.name];
   }
 }
 

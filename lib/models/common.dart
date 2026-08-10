@@ -308,10 +308,26 @@ extension GroupsExt on List<Group> {
     final index = indexWhere((element) => element.name == groupName);
     return index != -1 ? this[index] : null;
   }
+
+  List<Group> withTestUrlOverrides(Map<String, String> groupTestUrls) {
+    if (groupTestUrls.isEmpty) {
+      return this;
+    }
+    return map((group) => group.withTestUrlOverride(groupTestUrls)).toList();
+  }
 }
 
 extension GroupExt on Group {
   String get realNow => now ?? '';
+
+  /// Replaces the group's own test url with the user supplied one, if any.
+  Group withTestUrlOverride(Map<String, String> groupTestUrls) {
+    final overrideTestUrl = groupTestUrls[name];
+    if (overrideTestUrl == null || overrideTestUrl.isEmpty) {
+      return this;
+    }
+    return copyWith(testUrl: overrideTestUrl);
+  }
 
   String getCurrentSelectedName(String proxyName) {
     if (type.isComputedSelected) {

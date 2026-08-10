@@ -27,7 +27,7 @@ List<Group> getCurrentGroups() {
 }
 
 List<Group> getGroups() {
-  return globalState.container.read(groupsProvider);
+  return globalState.container.read(effectiveGroupsProvider);
 }
 
 String? getCurrentGroupName() {
