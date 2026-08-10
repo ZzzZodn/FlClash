@@ -384,6 +384,8 @@
   "scriptModeDesc": "脚本模式，使用外部扩展脚本，提供一键覆写配置的能力",
   "scriptModeRuleTip": "当前配置使用脚本覆写模式，没有规则列表。是否前往覆写页面切换模式？",
   "addedRules": "附加规则",
+  "profileRules": "配置自带规则",
+  "profileRulesDesc": "订阅配置自带的规则，只读，在附加规则之后匹配",
   "controlGlobalAddedRules": "控制全局附加规则",
   "overrideScript": "覆写脚本",
   "goToConfigureScript": "前往配置脚本",

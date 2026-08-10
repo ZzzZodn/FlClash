@@ -2,6 +2,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/overwrite/rule.dart';
 import 'package:fl_clash/models/clash_config.dart';
+import 'package:fl_clash/models/state.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -179,8 +180,78 @@ class _StandardContentState extends ConsumerState<StandardContent> {
               onPressed: _handleToEditGlobalAddedRules,
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+          _ProfileRules(profileId: _profileId),
         ],
       ),
+    );
+  }
+}
+
+/// The profile's own rules. They stay in effect below the added ones, so
+/// showing them is the only way to see which domain actually goes where.
+class _ProfileRules extends ConsumerWidget {
+  final int profileId;
+
+  const _ProfileRules({required this.profileId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appLocalizations = context.appLocalizations;
+    final rules = ref
+        .watch(
+          clashConfigProvider(
+            profileId,
+          ).select((state) => VM(state.value?.rules ?? const <Rule>[])),
+        )
+        .a;
+    if (rules.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: InfoHeader(
+            info: Info(label: appLocalizations.profileRules),
+            actions: [
+              Text(
+                '${rules.length}',
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: context.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              appLocalizations.profileRulesDesc,
+              style: context.textTheme.bodySmall?.copyWith(
+                color: context.colorScheme.onSurfaceVariant.opacity80,
+              ),
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverList.builder(
+            itemCount: rules.length,
+            itemBuilder: (_, index) {
+              return ItemPositionProvider(
+                position: ItemPosition.get(index, rules.length),
+                child: SizedBox(
+                  height: ruleItemHeight,
+                  child: RuleItem.readonly(rule: rules[index]),
+                ),
+              );
+            },
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
     );
   }
 }

@@ -384,6 +384,8 @@
   "scriptModeDesc": "Script mode, use external extension scripts, provide one-click override configuration capability",
   "scriptModeRuleTip": "This profile uses script override mode, which has no rule list. Open the override page to switch modes?",
   "addedRules": "Added rules",
+  "profileRules": "Profile rules",
+  "profileRulesDesc": "Read-only rules from the profile itself, matched after the added rules",
   "controlGlobalAddedRules": "Control global added rules",
   "overrideScript": "Override script",
   "goToConfigureScript": "Go to configure script",

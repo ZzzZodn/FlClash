@@ -473,6 +473,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "profileNameNullValidationDesc": MessageLookupByLibrary.simpleMessage(
       "请输入配置名称",
     ),
+    "profileRules": MessageLookupByLibrary.simpleMessage("配置自带规则"),
+    "profileRulesDesc": MessageLookupByLibrary.simpleMessage(
+      "订阅配置自带的规则，只读，在附加规则之后匹配",
+    ),
     "profileUrlInvalidValidationDesc": MessageLookupByLibrary.simpleMessage(
       "请输入有效配置URL",
     ),

@@ -384,6 +384,8 @@
   "scriptModeDesc": "スクリプトモード、外部拡張スクリプトを使用し、ワンクリックで設定を上書きする機能を提供",
   "scriptModeRuleTip": "このプロファイルはスクリプト上書きモードのため、ルール一覧はありません。上書きページを開いてモードを切り替えますか?",
   "addedRules": "追加ルール",
+  "profileRules": "プロファイルのルール",
+  "profileRulesDesc": "プロファイル自体のルール(読み取り専用)。追加ルールの後に照合されます",
   "controlGlobalAddedRules": "グローバル追加ルールを制御",
   "overrideScript": "上書きスクリプト",
   "goToConfigureScript": "スクリプト設定に移動",

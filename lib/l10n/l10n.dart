@@ -2964,6 +2964,26 @@ class AppLocalizations {
     return Intl.message('Added rules', name: 'addedRules', desc: '', args: []);
   }
 
+  /// `Profile rules`
+  String get profileRules {
+    return Intl.message(
+      'Profile rules',
+      name: 'profileRules',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Read-only rules from the profile itself, matched after the added rules`
+  String get profileRulesDesc {
+    return Intl.message(
+      'Read-only rules from the profile itself, matched after the added rules',
+      name: 'profileRulesDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Control global added rules`
   String get controlGlobalAddedRules {
     return Intl.message(

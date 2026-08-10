@@ -718,6 +718,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "profileNameNullValidationDesc": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите имя профиля",
     ),
+    "profileRules": MessageLookupByLibrary.simpleMessage("Правила профиля"),
+    "profileRulesDesc": MessageLookupByLibrary.simpleMessage(
+      "Правила из самого профиля, только для чтения, применяются после добавленных",
+    ),
     "profileUrlInvalidValidationDesc": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите действительный URL профиля",
     ),

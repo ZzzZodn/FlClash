@@ -19,8 +19,8 @@ class RuleItem extends StatelessWidget {
   final bool isEditing;
   final Rule rule;
   final bool hasMatch;
-  final void Function() onSelected;
-  final void Function(Rule rule) onEdit;
+  final void Function()? onSelected;
+  final void Function(Rule rule)? onEdit;
   final bool Function(Rule rule)? checkInvalidHandler;
 
   const RuleItem({
@@ -33,6 +33,18 @@ class RuleItem extends StatelessWidget {
     this.isEditing = false,
     this.hasMatch = false,
   });
+
+  /// Shows a rule that comes from the profile itself, so it can be read but
+  /// not selected or edited.
+  const RuleItem.readonly({super.key, required this.rule})
+    : isSelected = false,
+      isEditing = false,
+      hasMatch = true,
+      onSelected = null,
+      onEdit = null,
+      checkInvalidHandler = _alwaysValid;
+
+  static bool _alwaysValid(Rule rule) => false;
 
   VM2<bool, Color?> _checkInvalid(BuildContext context) {
     if (rule.ruleAction != RuleAction.SUB_RULE) {
@@ -83,6 +95,15 @@ class RuleItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm2 = _checkInvalid(context);
     final invalid = vm2.a;
+    final title = _buildTitle(context, vm2);
+    if (onEdit == null) {
+      return DecorationListItem(
+        minVerticalPadding: 0,
+        horizontalTitleGap: 0,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        title: title,
+      );
+    }
     return SelectedDecorationListItem(
       minVerticalPadding: 0,
       isSelected: isSelected,
@@ -90,72 +111,78 @@ class RuleItem extends StatelessWidget {
       horizontalTitleGap: 0,
       invalid: invalid,
       onSelected: () {
-        onSelected();
+        onSelected!();
       },
-      title: Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Builder(
-                builder: (context) {
-                  final style = DefaultTextStyle.of(
-                    context,
-                  ).style.toJetBrainsMono;
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        rule.ruleAction.name,
-                        style: style.copyWith(
-                          fontSize: context.textTheme.bodyLarge?.fontSize,
-                        ),
-                      ),
-                      Flexible(
-                        child: Builder(
-                          builder: (context) {
-                            return TooltipText(
-                              text: Text(
-                                rule.realContent ?? '',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: style.copyWith(
-                                  fontSize:
-                                      context.textTheme.bodyMedium?.fontSize,
-                                  color: style.color?.opacity60,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (invalid) _buildInfoWidget(context),
-                if (rule.realTarget != null)
-                  Text(
-                    rule.realTarget!,
-                    style: context.textTheme.bodyMedium?.toJetBrainsMono
-                        .copyWith(color: vm2.b),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      title: title,
       onPressed: () {
-        onEdit(rule);
+        onEdit!(rule);
       },
+    );
+  }
+
+  Widget _buildTitle(BuildContext context, VM2<bool, Color?> vm2) {
+    final invalid = vm2.a;
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                final style = DefaultTextStyle.of(
+                  context,
+                ).style.toJetBrainsMono;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      rule.ruleAction.name,
+                      style: style.copyWith(
+                        fontSize: context.textTheme.bodyLarge?.fontSize,
+                      ),
+                    ),
+                    Flexible(
+                      child: Builder(
+                        builder: (context) {
+                          return TooltipText(
+                            text: Text(
+                              rule.realContent ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: style.copyWith(
+                                fontSize:
+                                    context.textTheme.bodyMedium?.fontSize,
+                                color: style.color?.opacity60,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (invalid) _buildInfoWidget(context),
+              if (rule.realTarget != null)
+                Text(
+                  rule.realTarget!,
+                  style: context.textTheme.bodyMedium?.toJetBrainsMono.copyWith(
+                    color: vm2.b,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

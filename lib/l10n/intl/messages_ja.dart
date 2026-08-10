@@ -539,6 +539,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "profileNameNullValidationDesc": MessageLookupByLibrary.simpleMessage(
       "プロファイル名を入力してください",
     ),
+    "profileRules": MessageLookupByLibrary.simpleMessage("プロファイルのルール"),
+    "profileRulesDesc": MessageLookupByLibrary.simpleMessage(
+      "プロファイル自体のルール(読み取り専用)。追加ルールの後に照合されます",
+    ),
     "profileUrlInvalidValidationDesc": MessageLookupByLibrary.simpleMessage(
       "有効なプロファイルURLを入力してください",
     ),

@@ -683,6 +683,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "profileNameNullValidationDesc": MessageLookupByLibrary.simpleMessage(
       "Please input the profile name",
     ),
+    "profileRules": MessageLookupByLibrary.simpleMessage("Profile rules"),
+    "profileRulesDesc": MessageLookupByLibrary.simpleMessage(
+      "Read-only rules from the profile itself, matched after the added rules",
+    ),
     "profileUrlInvalidValidationDesc": MessageLookupByLibrary.simpleMessage(
       "Please input a valid profile URL",
     ),

@@ -241,6 +241,16 @@ class ProxiesTabViewState extends ConsumerState<ProxiesTabView>
             ),
           ),
         ),
+        // Kept outside the TabBarView: inside it, dragging to select text in
+        // the field is claimed by the page scroll and flips the tab instead.
+        AnimatedBuilder(
+          animation: _tabController!,
+          builder: (_, _) {
+            final index = _tabController!.index.clamp(0, groups.length - 1);
+            final group = groups[index];
+            return GroupTestUrlBar(key: ValueKey(group.name), group: group);
+          },
+        ),
         Expanded(
           child: TabBarView(
             controller: _tabController,
@@ -331,15 +341,6 @@ class _ProxyGroupViewState extends ConsumerState<ProxyGroupView> {
     final proxies = group.all;
     testUrl = group.testUrl;
     currentProxies = proxies;
-    return Column(
-      children: [
-        GroupTestUrlBar(key: ValueKey(group.name), group: group),
-        Expanded(child: _buildProxies(group)),
-      ],
-    );
-  }
-
-  Widget _buildProxies(Group group) {
     return CommonScrollBar(
       controller: _controller,
       child: GridView.builder(
