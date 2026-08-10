@@ -62,15 +62,22 @@ class _GroupTestUrlBarState extends ConsumerState<GroupTestUrlBar> {
     if (_focusNode.hasFocus) {
       return;
     }
-    if (!_handleSave(silence: true)) {
+    if (!_handleSave(silence: true, onlyWhenEdited: true)) {
       _controller.text = _testUrl;
     }
   }
 
   /// Stores the typed url for this group. Returns false when the input cannot
   /// be used, leaving the stored value untouched.
-  bool _handleSave({bool silence = false}) {
+  ///
+  /// Leaving the field or running a test must not turn the url already in
+  /// effect into a custom one, otherwise the group would be pinned to it even
+  /// after the profile changes its own url.
+  bool _handleSave({bool silence = false, bool onlyWhenEdited = false}) {
     final value = _controller.text.trim();
+    if (onlyWhenEdited && value == _testUrl) {
+      return true;
+    }
     if (value.isNotEmpty && !value.isUrl) {
       if (!silence) {
         final appLocalizations = context.appLocalizations;
@@ -99,7 +106,7 @@ class _GroupTestUrlBarState extends ConsumerState<GroupTestUrlBar> {
   }
 
   Future<void> _handleDelayTest() async {
-    if (_isTesting || !_handleSave()) {
+    if (_isTesting || !_handleSave(onlyWhenEdited: true)) {
       return;
     }
     final testUrl = _readTestUrl();

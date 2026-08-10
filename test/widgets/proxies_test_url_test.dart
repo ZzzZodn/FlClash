@@ -90,6 +90,46 @@ void main() {
     expect(find.byIcon(Icons.restore), findsOneWidget);
   });
 
+  testWidgets('leaving the field untouched stores no custom url', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        appSettingProvider.overrideWithBuild(
+          (_, _) => const AppSettingProps(testUrl: _globalTestUrl),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const _TestApp(
+          child: Scaffold(
+            body: GroupTestUrlBar(
+              group: Group(
+                name: 'Auto',
+                type: GroupType.URLTest,
+                testUrl: _groupTestUrl,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    tester.binding.focusManager.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+
+    // Pinning the group to the url it already uses would survive the profile
+    // changing its own url later on.
+    expect(container.read(groupTestUrlsProvider), isEmpty);
+  });
+
   testWidgets('reacts to a custom test url being stored', (tester) async {
     final container = ProviderContainer(
       overrides: [
