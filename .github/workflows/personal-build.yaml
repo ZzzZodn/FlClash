@@ -1,0 +1,77 @@
+# Manual build of the desktop targets that cannot be built on Linux.
+#
+# Kept separate from build.yaml, which fires on release tags and also runs the
+# signing, changelog and publishing jobs that need this project's secrets.
+name: personal build
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.44.4'
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Each target stands alone, so one failing must not cancel the other.
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: Windows-2022
+            arch: amd64
+          - platform: macos
+            os: macos-15-intel
+            arch: amd64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout submodules
+        # .gitmodules points at the ssh url of a public repository, which no
+        # runner can read; https needs no credentials.
+        run: |
+          git config submodule."core/Clash.Meta".url https://github.com/chen08209/Clash.Meta.git
+          git submodule update --init --recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: |
+            core/go.sum
+
+      - name: Enable git long paths (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: git config --global core.longpaths true
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: master
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup Xcode
+        if: startsWith(matrix.platform,'macos')
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
+          xcodebuild -version
+
+      - name: Get Flutter Dependency
+        run: |
+          flutter --version
+          flutter pub get
+
+      - name: Setup
+        run: dart setup.dart ${{ matrix.platform }} --env stable -v
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-${{ matrix.platform }}-${{ matrix.arch }}
+          path: ./dist
+          overwrite: true
