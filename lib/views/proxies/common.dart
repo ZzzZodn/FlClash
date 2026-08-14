@@ -72,9 +72,14 @@ Future<Delay?> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
   return delay;
 }
 
-/// Testing every proxy at once floods dns and the handshake path, so the first
-/// run reports timeouts that a second run does not.
-const _delayTestConcurrency = 100;
+/// Each proxy tested has its server hostname resolved first, and with a doh
+/// resolver every one of those is a fresh tls handshake. Firing a whole group
+/// at once made the resolver thrash and most tests came back as failures in
+/// well under their timeout, which is why a second run - served from the dns
+/// cache - reported every proxy as reachable.
+///
+/// A small window also lets later batches reuse what earlier ones resolved.
+const _delayTestConcurrency = 8;
 
 Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
   final total = Stopwatch()..start();
