@@ -48,7 +48,7 @@ void updateCurrentUnfoldSet(Set<String> value) {
       .updateCurrentUnfoldSet(value);
 }
 
-Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
+Future<Delay?> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
   final ref = globalState.container;
   final groups = getGroups();
   final selectedMap = ref.read(
@@ -63,14 +63,13 @@ Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
     ref.read(realTestUrlProvider(testUrl)),
   ]);
   if (state.proxyName.isEmpty) {
-    return;
+    return null;
   }
-  ref
-      .read(proxiesActionProvider.notifier)
-      .setDelay(Delay(url: currentTestUrl, name: state.proxyName, value: 0));
-  ref
-      .read(proxiesActionProvider.notifier)
-      .setDelay(await coreController.getDelay(currentTestUrl, state.proxyName));
+  final action = ref.read(proxiesActionProvider.notifier);
+  action.setDelay(Delay(url: currentTestUrl, name: state.proxyName, value: 0));
+  final delay = await coreController.getDelay(currentTestUrl, state.proxyName);
+  action.setDelay(delay);
+  return delay;
 }
 
 /// Testing every proxy at once floods dns and the handshake path, so the first
@@ -78,9 +77,31 @@ Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
 const _delayTestConcurrency = 100;
 
 Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
+  final total = Stopwatch()..start();
+  var reachable = 0;
+  var timedOut = 0;
+  var slowestRoundTrip = 0;
   await runBatched(proxies, _delayTestConcurrency, (proxy) async {
-    await proxyDelayTest(proxy, testUrl);
+    final roundTrip = Stopwatch()..start();
+    final delay = await proxyDelayTest(proxy, testUrl);
+    roundTrip.stop();
+    if (delay == null) {
+      return;
+    }
+    if (roundTrip.elapsedMilliseconds > slowestRoundTrip) {
+      slowestRoundTrip = roundTrip.elapsedMilliseconds;
+    }
+    (delay.value ?? 0) > 0 ? reachable++ : timedOut++;
   });
+  total.stop();
+  // Surfaced in the logs page. A round trip near the core's own 5s budget
+  // means the connection itself never completed; one near the 6s ceiling the
+  // app applies means no answer came back at all.
+  commonPrint.log(
+    'delay test: ${proxies.length} proxies, concurrency $_delayTestConcurrency, '
+    'reachable $reachable, timeout $timedOut, '
+    'slowest round trip ${slowestRoundTrip}ms, total ${total.elapsedMilliseconds}ms',
+  );
   globalState.container.read(sortNumProvider.notifier).add();
 }
 
