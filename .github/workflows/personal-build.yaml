@@ -25,6 +25,11 @@ jobs:
           - platform: macos
             os: macos-15-intel
             arch: amd64
+          # Matches the release workflow: building against an older glibc keeps
+          # the deb and AppImage usable on distributions older than the runner.
+          - platform: linux
+            os: ubuntu-22.04
+            arch: amd64
 
     steps:
       - name: Checkout
