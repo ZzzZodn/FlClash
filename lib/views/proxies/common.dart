@@ -73,15 +73,14 @@ Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
       .setDelay(await coreController.getDelay(currentTestUrl, state.proxyName));
 }
 
-Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
-  final delayProxies = proxies.map<Future>((proxy) async {
-    await proxyDelayTest(proxy, testUrl);
-  }).toList();
+/// Testing every proxy at once floods dns and the handshake path, so the first
+/// run reports timeouts that a second run does not.
+const _delayTestConcurrency = 100;
 
-  final batchesDelayProxies = delayProxies.batch(100);
-  for (final batchDelayProxies in batchesDelayProxies) {
-    await Future.wait(batchDelayProxies);
-  }
+Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
+  await runBatched(proxies, _delayTestConcurrency, (proxy) async {
+    await proxyDelayTest(proxy, testUrl);
+  });
   globalState.container.read(sortNumProvider.notifier).add();
 }
 
