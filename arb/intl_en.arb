@@ -556,6 +556,7 @@
   "geoUpdating": "Updating {name}...",
   "geoSkipped": "{name} is already up to date",
   "geoUpdated": "{name} updated",
+  "geoUpdateFailed": "Could not update {name}: {error}",
   "secondsCount": "{count} seconds",
   "entriesCount": "{count} entries"
 }

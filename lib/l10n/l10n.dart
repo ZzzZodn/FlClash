@@ -4544,6 +4544,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Could not update {name}: {error}`
+  String geoUpdateFailed(Object name, Object error) {
+    return Intl.message(
+      'Could not update $name: $error',
+      name: 'geoUpdateFailed',
+      desc: '',
+      args: [name, error],
+    );
+  }
+
   /// `{count} seconds`
   String secondsCount(Object count) {
     return Intl.message(

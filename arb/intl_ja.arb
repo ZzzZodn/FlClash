@@ -556,6 +556,7 @@
   "geoUpdating": "{name}を更新中...",
   "geoSkipped": "{name} はすでに最新です",
   "geoUpdated": "{name} 更新済み",
+  "geoUpdateFailed": "{name} を更新できませんでした：{error}",
   "secondsCount": "{count} 秒",
   "entriesCount": "{count} エントリ"
 }

@@ -116,18 +116,26 @@ class _CoreContainerState extends ConsumerState<CoreManager>
   @override
   void onGeoUpdate(String geoType, bool updating, bool skipped, String? error) {
     final geoResource = GeoResource.fromJson(geoType.toLowerCase());
-    final key = geoResource.updatingKey;
     final l10n = currentAppLocalizations;
-    if (updating) {
-      globalState.showNotifier(l10n.geoUpdating(geoResource.name));
-    } else if (skipped) {
-      globalState.showNotifier(l10n.geoSkipped(geoResource.name));
-    } else {
-      globalState.showNotifier(l10n.geoUpdated(geoResource.name));
-    }
-    ref.read(isUpdatingProvider(key).notifier).value = updating;
-    if (!updating && error != null && error.isNotEmpty) {
-      globalState.showNotifier(error);
+    final action = ref.read(geoResourceActionProvider.notifier);
+    ref.read(isUpdatingProvider(geoResource.updatingKey).notifier).value =
+        updating;
+    final failed = !updating && error != null && error.isNotEmpty;
+    if (failed) {
+      // A failure used to be announced as a success first, because the branch
+      // that picked the message only looked at `skipped`.
+      action.takeRequested(geoResource);
+      globalState.showNotifier(l10n.geoUpdateFailed(geoResource.name, error));
+    } else if (updating) {
+      if (action.isRequested(geoResource)) {
+        globalState.showNotifier(l10n.geoUpdating(geoResource.name));
+      }
+    } else if (action.takeRequested(geoResource)) {
+      globalState.showNotifier(
+        skipped
+            ? l10n.geoSkipped(geoResource.name)
+            : l10n.geoUpdated(geoResource.name),
+      );
     }
     super.onGeoUpdate(geoType, updating, skipped, error);
   }

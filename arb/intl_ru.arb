@@ -556,6 +556,7 @@
   "geoUpdating": "Обновление {name}...",
   "geoSkipped": "Для {name} уже установлена последняя версия",
   "geoUpdated": "{name} обновлено",
+  "geoUpdateFailed": "Не удалось обновить {name}: {error}",
   "secondsCount": "{count} секунд",
   "entriesCount": "{count} записей"
 }
