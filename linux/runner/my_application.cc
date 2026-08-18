@@ -124,11 +124,16 @@ static void my_application_class_init(MyApplicationClass* klass) {
 static void my_application_init(MyApplication* self) {}
 
 MyApplication* my_application_new() {
-  // Set the program name to the application ID, which helps various systems
-  // like GTK and desktop environments map this running application to its
-  // corresponding .desktop file. This ensures better integration by allowing
-  // the application to be recognized beyond its binary name.
-  g_set_prgname(APPLICATION_ID);
+  // The program name becomes the Wayland app id (and the X11 WM_CLASS), which
+  // is what a desktop environment matches against a .desktop file name to find
+  // the running application's icon and title.
+  //
+  // Flutter's template sets it to the application ID because it assumes the
+  // entry is named after that ID. Our packaging names the entry after the
+  // binary instead, so the application ID never matched and the shell fell
+  // back to a generic icon. The application ID still identifies the
+  // GApplication, and the data directory is derived from that, not from here.
+  g_set_prgname(BINARY_NAME);
 
   return MY_APPLICATION(g_object_new(my_application_get_type(),
                                      "application-id", APPLICATION_ID,
