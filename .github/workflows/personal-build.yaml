@@ -34,13 +34,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Checkout submodules
-        # .gitmodules points at the ssh url of a public repository, which no
-        # runner can read; https needs no credentials.
-        run: |
-          git config submodule."core/Clash.Meta".url https://github.com/chen08209/Clash.Meta.git
-          git submodule update --init --recursive
+        with:
+          # .gitmodules now names an https url, so no credentials are involved.
+          submodules: recursive
 
       - name: Setup Go
         uses: actions/setup-go@v5
