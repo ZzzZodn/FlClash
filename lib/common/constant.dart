@@ -11,13 +11,16 @@ import 'package:flutter/material.dart';
 
 const appName = 'FlClash';
 const appHelperService = 'FlClashHelperService';
+const coreManifestName = 'manifest.json';
 const coreName = 'clash.meta';
 const browserUa =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const packageName = 'com.follow.clash';
 final unixSocketPath = '/tmp/FlClashSocket_${Random().nextInt(10000)}.sock';
-final windowsPipeName = '\\\\.\\pipe\\FlClashCore_${Random().nextInt(10000)}';
+final windowsPipeName = '\\\\.\\pipe\\FlClashCore_${_randomPipeId()}';
 const helperPort = 47890;
+const helperProtocolVersionHeader = 'x-flclash-helper-protocol';
+const helperProtocolVersion = '6';
 const maxTextScale = 1.4;
 const minTextScale = 0.8;
 final baseInfoEdgeInsets = EdgeInsets.symmetric(
@@ -34,9 +37,28 @@ const sheetAppBarHeight = 68.0;
 
 const watchExecution = false;
 
+String _randomPipeId() {
+  final random = Random.secure();
+  return List.generate(
+    16,
+    (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
+}
+
 final defaultTextScaleFactor =
     WidgetsBinding.instance.platformDispatcher.textScaleFactor;
 const httpTimeoutDuration = Duration(milliseconds: 5000);
+
+/// Keep at or below the Core's delay-test concurrency (`mBatch` in
+/// core/common.go). Surplus requests queue inside the Core behind a full wave
+/// of 5s timeouts, which no RPC timeout can cover.
+///
+/// Held well below that ceiling because every proxy tested has its server
+/// hostname resolved first, and against a doh resolver each of those is a
+/// fresh tls handshake. A wide window made the resolver thrash and returned
+/// failures in a fraction of the timeout; a narrow one also lets later batches
+/// reuse what earlier ones put in the dns cache.
+const maxConcurrentDelayTests = 10;
 const moreDuration = Duration(milliseconds: 100);
 const animateDuration = Duration(milliseconds: 100);
 const midDuration = Duration(milliseconds: 200);

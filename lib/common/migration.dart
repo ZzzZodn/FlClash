@@ -1,72 +1,171 @@
-import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/database/database.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 
+import 'preferences.dart';
+import 'task.dart';
+
+typedef MigrationTransform =
+    Future<MigrationData> Function(Map<String, Object?> configMap);
+
+abstract interface class MigrationStore {
+  Future<Map<String, Object?>?> getConfigMap();
+
+  Future<int> getVersion();
+
+  Future<Map<String, Object?>?> getClashConfigMap();
+
+  Future<void> restore(MigrationData data);
+
+  Future<bool> saveConfig(Config config);
+
+  Future<void> clearClashConfig();
+
+  Future<void> setVersion(int version);
+}
+
+class _AppMigrationStore implements MigrationStore {
+  const _AppMigrationStore();
+
+  @override
+  Future<Map<String, Object?>?> getConfigMap() => preferences.getConfigMap();
+
+  @override
+  Future<int> getVersion() => preferences.getVersion();
+
+  @override
+  Future<Map<String, Object?>?> getClashConfigMap() =>
+      preferences.getClashConfigMap();
+
+  @override
+  Future<void> restore(MigrationData data) {
+    return database.restore(
+      data.profiles,
+      data.scripts,
+      data.rules,
+      data.links,
+      data.proxyGroups,
+    );
+  }
+
+  @override
+  Future<bool> saveConfig(Config config) => preferences.saveConfig(config);
+
+  @override
+  Future<void> clearClashConfig() => preferences.clearClashConfig();
+
+  @override
+  Future<void> setVersion(int version) => preferences.setVersion(version);
+}
+
 class Migration {
-  static Migration? _instance;
-  late int _oldVersion;
+  final MigrationStore _store;
+  final MigrationTransform _migrateV0;
 
-  Migration._internal();
+  Migration({required MigrationStore store, MigrationTransform? migrateV0})
+    : _store = store,
+      _migrateV0 = migrateV0 ?? oldToNowTask;
 
-  final currentVersion = 2;
+  /// 2 adds the port dashboard card to layouts saved before it existed.
+  static const currentVersion = 2;
 
-  factory Migration() {
-    _instance ??= Migration._internal();
-    return _instance!;
-  }
-
-  Future<Config> migrationIfNeeded(
-    Map<String, Object?>? configMap, {
-    required Future<Config> Function(MigrationData data) sync,
-  }) async {
-    _oldVersion = await preferences.getVersion();
-    if (_oldVersion == currentVersion) {
+  Future<Config> run() async {
+    final configMap = await _store.getConfigMap();
+    var oldVersion = await _store.getVersion();
+    Config? config;
+    if (oldVersion > currentVersion) {
+      throw StateError(
+        'Local data version $oldVersion is newer than $currentVersion.',
+      );
+    }
+    if (oldVersion == currentVersion) {
       try {
-        return Config.realFromJson(configMap);
+        config = Config.realFromJson(configMap);
       } catch (_) {
-        final isV0 = configMap?['proxiesStyle'] != null;
-        if (isV0) {
-          _oldVersion = 0;
-        } else {
-          throw 'Local data is damaged. A reset is required to fix this issue.';
+        if (!_isV0(configMap)) {
+          throw StateError(
+            'Local data is damaged. A reset is required to fix this issue.',
+          );
         }
+        oldVersion = 0;
+      }
+      if (config != null) {
+        final storedDavPassword = _getStoredDavPassword(configMap);
+        final hasPlainTextDavPassword =
+            storedDavPassword != null &&
+            storedDavPassword == config.davProps?.password;
+        if (hasPlainTextDavPassword && !await _store.saveConfig(config)) {
+          throw StateError('Failed to obfuscate the legacy WebDAV password');
+        }
+        return config;
       }
     }
+
     MigrationData data = MigrationData(configMap: configMap);
-    if (_oldVersion == 0 && configMap != null) {
-      final clashConfigMap = await preferences.getClashConfigMap();
-      if (clashConfigMap != null) {
-        configMap['patchClashConfig'] = clashConfigMap;
-        await preferences.clearClashConfig();
+    var shouldClearClashConfig = false;
+    if (oldVersion == 0) {
+      final clashConfigMap = await _store.getClashConfigMap();
+      if (_isV0(configMap) && configMap != null) {
+        final legacyConfigMap = Map<String, Object?>.from(configMap);
+        if (clashConfigMap != null) {
+          legacyConfigMap['patchClashConfig'] = clashConfigMap;
+          shouldClearClashConfig = true;
+        }
+        data = await _migrateV0(legacyConfigMap);
+      } else if (clashConfigMap != null) {
+        final currentConfigMap = Map<String, Object?>.from(
+          configMap ?? const {},
+        );
+        currentConfigMap.putIfAbsent('patchClashConfig', () => clashConfigMap);
+        data = MigrationData(configMap: currentConfigMap);
+        shouldClearClashConfig = true;
       }
-      data = await _oldToNow(configMap);
     }
-    _appendDashboardWidget(data.configMap, DashboardWidget.port);
-    final res = await sync(data);
-    await preferences.setVersion(currentVersion);
-    return res;
-  }
 
-  Future<MigrationData> _oldToNow(Map<String, Object?> configMap) async {
-    return oldToNowTask(configMap);
-  }
+    if (oldVersion < 2) {
+      _appendDashboardWidget(data.configMap, DashboardWidget.port);
+    }
 
-  /// Adds a dashboard widget introduced after the stored layout was saved, so
-  /// existing users see it without rebuilding their dashboard by hand.
-  void _appendDashboardWidget(
-    Map<String, Object?>? configMap,
-    DashboardWidget widget,
-  ) {
-    final appSettingProps = configMap?['appSettingProps'];
-    if (appSettingProps is! Map) {
-      return;
+    config = Config.realFromJson(data.configMap);
+    await _store.restore(data);
+    if (!await _store.saveConfig(config)) {
+      throw StateError('Failed to save migrated preferences');
     }
-    final dashboardWidgets = appSettingProps['dashboardWidgets'];
-    if (dashboardWidgets is! List || dashboardWidgets.contains(widget.name)) {
-      return;
+    if (shouldClearClashConfig) {
+      await _store.clearClashConfig();
     }
-    appSettingProps['dashboardWidgets'] = [...dashboardWidgets, widget.name];
+    await _store.setVersion(currentVersion);
+    return config;
   }
 }
 
-final migration = Migration();
+/// Adds a dashboard widget introduced after the stored layout was saved, so
+/// existing users see it without rebuilding their dashboard by hand.
+void _appendDashboardWidget(
+  Map<String, Object?>? configMap,
+  DashboardWidget widget,
+) {
+  final appSettingProps = configMap?['appSettingProps'];
+  if (appSettingProps is! Map) {
+    return;
+  }
+  final dashboardWidgets = appSettingProps['dashboardWidgets'];
+  if (dashboardWidgets is! List || dashboardWidgets.contains(widget.name)) {
+    return;
+  }
+  appSettingProps['dashboardWidgets'] = [...dashboardWidgets, widget.name];
+}
+
+bool _isV0(Map<String, Object?>? configMap) =>
+    configMap?['proxiesStyle'] != null;
+
+String? _getStoredDavPassword(Map<String, Object?>? configMap) {
+  final dav = configMap?['davProps'] ?? configMap?['dav'];
+  if (dav is! Map) {
+    return null;
+  }
+  final password = dav['password'];
+  return password is String && password.isNotEmpty ? password : null;
+}
+
+final migration = Migration(store: const _AppMigrationStore());

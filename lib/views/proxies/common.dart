@@ -27,13 +27,7 @@ List<Group> getCurrentGroups() {
 }
 
 List<Group> getGroups() {
-  return globalState.container.read(effectiveGroupsProvider);
-}
-
-String? getCurrentGroupName() {
-  return globalState.container.read(
-    currentProfileProvider.select((state) => state?.currentGroupName),
-  );
+  return globalState.container.read(groupsProvider);
 }
 
 void updateCurrentGroupName(String groupName) {
@@ -65,45 +59,55 @@ Future<Delay?> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
   if (state.proxyName.isEmpty) {
     return null;
   }
-  final action = ref.read(proxiesActionProvider.notifier);
-  action.setDelay(Delay(url: currentTestUrl, name: state.proxyName, value: 0));
-  final delay = await coreController.getDelay(currentTestUrl, state.proxyName);
-  action.setDelay(delay);
-  return delay;
+  ref
+      .read(proxiesActionProvider.notifier)
+      .setDelay(Delay(url: currentTestUrl, name: state.proxyName, value: 0));
+  try {
+    final delay = await coreController.getDelay(
+      currentTestUrl,
+      state.proxyName,
+    );
+    ref.read(proxiesActionProvider.notifier).setDelay(delay);
+    return delay;
+  } catch (error) {
+    commonPrint.log(
+      'Delay test failed for ${state.proxyName}: $error',
+      logLevel: coreFailureLogLevel(error),
+    );
+    final failed = Delay(url: currentTestUrl, name: state.proxyName, value: -1);
+    ref.read(proxiesActionProvider.notifier).setDelay(failed);
+    return failed;
+  }
 }
-
-/// Each proxy tested has its server hostname resolved first, and with a doh
-/// resolver every one of those is a fresh tls handshake. Firing a whole group
-/// at once made the resolver thrash and most tests came back as failures in
-/// well under their timeout, which is why a second run - served from the dns
-/// cache - reported every proxy as reachable.
-///
-/// A small window also lets later batches reuse what earlier ones resolved.
-const _delayTestConcurrency = 8;
 
 Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
   final total = Stopwatch()..start();
   var reachable = 0;
   var timedOut = 0;
   var slowestRoundTrip = 0;
-  await runBatched(proxies, _delayTestConcurrency, (proxy) async {
-    final roundTrip = Stopwatch()..start();
-    final delay = await proxyDelayTest(proxy, testUrl);
-    roundTrip.stop();
-    if (delay == null) {
-      return;
-    }
-    if (roundTrip.elapsedMilliseconds > slowestRoundTrip) {
-      slowestRoundTrip = roundTrip.elapsedMilliseconds;
-    }
-    (delay.value ?? 0) > 0 ? reachable++ : timedOut++;
-  });
+  final batches = proxies.batch(maxConcurrentDelayTests);
+  for (final batch in batches) {
+    await Future.wait(
+      batch.map((proxy) async {
+        final roundTrip = Stopwatch()..start();
+        final delay = await proxyDelayTest(proxy, testUrl);
+        roundTrip.stop();
+        if (delay == null) {
+          return;
+        }
+        if (roundTrip.elapsedMilliseconds > slowestRoundTrip) {
+          slowestRoundTrip = roundTrip.elapsedMilliseconds;
+        }
+        (delay.value ?? 0) > 0 ? reachable++ : timedOut++;
+      }),
+    );
+  }
   total.stop();
-  // Surfaced in the logs page. A round trip near the core's own 5s budget
-  // means the connection itself never completed; one near the 6s ceiling the
-  // app applies means no answer came back at all.
+  // Surfaced in the logs page. A round trip near the core's own timeout means
+  // the connection never completed; one far below it means the attempt was
+  // rejected before that, which is what an overloaded resolver looks like.
   commonPrint.log(
-    'delay test: ${proxies.length} proxies, concurrency $_delayTestConcurrency, '
+    'delay test: ${proxies.length} proxies, concurrency $maxConcurrentDelayTests, '
     'reachable $reachable, timeout $timedOut, '
     'slowest round trip ${slowestRoundTrip}ms, total ${total.elapsedMilliseconds}ms',
   );
@@ -113,9 +117,9 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
 double getScrollToSelectedOffset({
   required String groupName,
   required List<Proxy> proxies,
+  required int columns,
 }) {
   final ref = globalState.container;
-  final columns = ref.read(proxiesColumnsProvider);
   final proxyCardType = ref.read(
     proxiesStyleSettingProvider.select((state) => state.cardType),
   );

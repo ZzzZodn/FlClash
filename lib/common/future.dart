@@ -11,11 +11,19 @@ extension FutureExt<T> on Future<T> {
     FutureOr<T> Function()? onTimeout,
   }) {
     final realTimeout = timeout ?? const Duration(minutes: 3);
-    Timer(realTimeout + commonDuration, () {
-      if (onLast != null) {
-        onLast();
-      }
-    });
+    final cleanupTimer = onLast == null
+        ? null
+        : Timer(realTimeout + commonDuration, onLast);
+    if (cleanupTimer != null) {
+      unawaited(
+        then<void>(
+          (_) => cleanupTimer.cancel(),
+          onError: (Object _, StackTrace _) {
+            cleanupTimer.cancel();
+          },
+        ),
+      );
+    }
     return this.timeout(
       realTimeout,
       onTimeout: () async {
@@ -26,31 +34,6 @@ extension FutureExt<T> on Future<T> {
         }
       },
     );
-  }
-}
-
-/// Runs [action] over [items], never with more than [concurrency] in flight.
-///
-/// Mapping to futures up front and chunking the result does not cap anything:
-/// building the list already starts every future.
-Future<void> runBatched<T>(
-  Iterable<T> items,
-  int concurrency,
-  Future<void> Function(T item) action,
-) async {
-  if (concurrency < 1) {
-    throw ArgumentError.value(concurrency, 'concurrency', 'must be at least 1');
-  }
-  final pending = <Future<void>>[];
-  for (final item in items) {
-    pending.add(action(item));
-    if (pending.length == concurrency) {
-      await Future.wait(pending);
-      pending.clear();
-    }
-  }
-  if (pending.isNotEmpty) {
-    await Future.wait(pending);
   }
 }
 
